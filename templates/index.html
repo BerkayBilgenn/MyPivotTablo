@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grafik ve Excel Aktarımı</title>
+    <!-- Modern CSS Framework -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.0/package/dist/xlsx.full.min.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  </head>
+
+  <body class="bg-gradient-to-r from-blue-500 to-indigo-500 text-gray-900">
+    <div class="container mx-auto p-6 bg-white rounded-xl shadow-xl mt-10">
+      <h1 class="text-3xl font-bold text-center mb-8 text-indigo-600">Grafik ve Excel Aktarımı</h1>
+
+      <!-- Veri Giriş Alanı -->
+      <div id="input-section" class="mb-6">
+        <form class="space-y-6">
+          <div>
+            <label
+              for="x-coordinates"
+              class="block text-sm font-medium text-gray-700"
+            >
+              X Koordinat Başlığını Gir:
+            </label>
+            <input
+              type="text"
+              id="x-coordinates"
+              class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="Örnek: a fakültesi, b fakültesi"
+              required
+            />
+          </div>
+
+          <div>
+            <label
+              for="gelen-cagri"
+              class="block text-sm font-medium text-gray-700"
+            >
+              Toplam Gelen Çağrı:
+            </label>
+            <input
+              type="text"
+              id="gelen-cagri"
+              class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="Örnek: 30,45,60,80"
+              required
+            />
+          </div>
+
+          <div>
+            <label
+              for="cevalpanan-cagri"
+              class="block text-sm font-medium text-gray-700"
+            >
+              Toplam Cevaplanan Çağrı:
+            </label>
+            <input
+              type="text"
+              id="cevaplanan-cagri"
+              class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="Örnek: 10,15,20,25"
+              required
+            />
+          </div>
+
+          <div class="flex justify-between flex-wrap gap-4">
+            <button
+              type="button"
+              onclick="generateChart()"
+              class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+            >
+              Grafik Gönder
+            </button>
+            <button
+              type="button"
+              onclick="exportToExcel()"
+              class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+            >
+              Excel'e Aktar
+            </button>
+            <button
+              type="button"
+              onclick="addPivotChart()"
+              class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition"
+            >
+              Pivot Grafik Rehberi
+            </button>
+            <button
+              type="button"
+              onclick="showMacroCode()"
+              class="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition"
+            >
+              Makro Kodunu Kopyala
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Excel Yükleme Alanı -->
+      <div id="upload-section" class="mb-6 p-4 border-2 border-dashed rounded-lg bg-gray-100">
+        
+        <form id="uploadForm" enctype="multipart/form-data">
+          <input
+            type="file"
+            id="excelFile"
+            accept=".xls, .xlsx"
+            class="block mb-4 w-full text-sm text-gray-500 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+          <div id="upload-section">
+            <h3>Excel Dosyasından Veri Çek</h3>
+            <label for="excelFile">Excel Dosyanızı Seçin</label>
+            <input 
+              type="file" 
+              id="excelFile" 
+              accept=".xls, .xlsx" 
+              onchange="showFileName()" 
+            />
+            <p id="fileNameDisplay">Henüz bir dosya seçilmedi.</p>
+            <button type="button" onclick="uploadExcel()">Verileri Yükle</button>
+          </div>
+          
+          
+          
+        </form>
+      </div>
+
+      <!-- Grafik Alanı -->
+      <div class="ChartContainer bg-gray-50 rounded-lg p-6 shadow-md">
+        <div id="chart-section">
+          <canvas id="myChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Makro Kod Alanı -->
+      <div id="macroCode" class="hidden mt-6 bg-gray-100 p-4 rounded-lg">
+        <pre class="whitespace-pre-wrap text-sm text-gray-700">
+          Sub AddOrUpdatePivotChart()
+          Dim ws As Worksheet
+          Dim pt As PivotTable
+          Dim pc As ChartObject
+          Dim dataRange As Range
+          Dim pivotSheet As Worksheet
+          Dim pivotCache As PivotCache
+          ' Makro kodu buraya gelecek...
+          End Sub
+        </pre>
+      </div>
+    </div>
+  </body>
+</html>
