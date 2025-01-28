@@ -198,7 +198,7 @@ function uploadExcel() {
   const formData = new FormData();
   formData.append("file", file);
 
-  fetch("http://127.0.0.1:5000/upload_excel", {
+  fetch("https://mypivot-4q9n.onrender.com/", {
     method: "POST",
     body: formData,
   })
