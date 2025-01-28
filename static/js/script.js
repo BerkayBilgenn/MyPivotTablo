@@ -7,15 +7,15 @@ function generateChart() {
   const cevaplananCagri = document
     .getElementById("cevaplanan-cagri")
     ?.value.split(",")
-    .map((item) => (item.trim() === "" ? 0 : parseFloat(item.trim())));
+    .map((item) => parseFloat(item.trim()));
   const gelenCagri = document
     .getElementById("gelen-cagri")
     ?.value.split(",")
-    .map((item) => (item.trim() === "" ? 0 : parseFloat(item.trim())));
+    .map((item) => parseFloat(item.trim()));
 
   // Hata kontrolü
   if (!xCoords || !cevaplananCagri || !gelenCagri) {
-    alert("Bir veya daha fazla gerekli giriş alanı bulunamadı. Lütfen sayfayı kontrol edin!");
+    alert("Bir veya daha fazla alan eksik!");
     return;
   }
 
@@ -116,7 +116,28 @@ function generateChart() {
   });
 }
 
-// Excel dosyasını dışa aktarma fonksiyonu
+// Dosya ismini gösterme fonksiyonu
+function showFileName(event) {
+  // event.target ile dosya ismini almak
+  if (event && event.target) {
+    const fileInput = event.target;
+    const fileName = fileInput.files[0]?.name;
+
+    const fileNameElement = document.getElementById("fileNameDisplay");
+    if (fileName && fileNameElement) {
+      fileNameElement.textContent = fileName;
+    } else {
+      fileNameElement.textContent = "Henüz bir dosya seçilmedi.";
+    }
+  } else {
+    console.error("Event veya event.target tanımlanamıyor.");
+  }
+}
+
+
+
+
+// Excel'e veri aktarımı fonksiyonu
 function exportToExcel() {
   const xCoords = document
     .getElementById("x-coordinates")
@@ -136,6 +157,7 @@ function exportToExcel() {
     return;
   }
 
+  // Backend'e JSON verilerini gönder
   fetch('/generate_excel', {
     method: 'POST',
     headers: {
@@ -149,6 +171,7 @@ function exportToExcel() {
   })
     .then((response) => response.blob())
     .then((blob) => {
+      // Excel dosyasını indirme
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -162,11 +185,10 @@ function exportToExcel() {
     });
 }
 
-// Excel dosyasını yükle
+// Excel dosyasını yükleme fonksiyonu
 function uploadExcel() {
   const fileInput = document.getElementById("excelFile");
   const file = fileInput.files[0];
-  const fileNameDisplay = document.getElementById("fileNameDisplay");
 
   if (!file) {
     alert("Lütfen bir Excel dosyası seçin.");
@@ -176,85 +198,56 @@ function uploadExcel() {
   const formData = new FormData();
   formData.append("file", file);
 
-  fetch("http://127.0.0.1:5000/upload_excel", {  // Yerel geliştirme için URL
+  fetch("http://127.0.0.1:5000/upload_excel", {
     method: "POST",
     body: formData,
   })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Sunucudan hata alındı.");
-      }
-      return response.json();
-    })
+    .then((response) => response.json())
     .then((data) => {
       if (!data.success) {
         alert(data.message || "Dosya yüklenirken bir hata oluştu.");
-        fileNameDisplay.textContent = "Yükleme Başarısız!";
         return;
       }
 
       const { x_coords, toplam_gelen, toplam_cevaplanan } = data.data;
 
-      // Verileri giriş alanlarına aktar
+      // X Koordinatlarını doldur
       if (x_coords && x_coords.length > 0) {
         document.getElementById("x-coordinates").value = x_coords.join(",");
       }
+
+      // Diğer alanları doldur
       if (toplam_gelen && toplam_gelen.length > 0) {
         document.getElementById("gelen-cagri").value = toplam_gelen.join(",");
       }
+
       if (toplam_cevaplanan && toplam_cevaplanan.length > 0) {
         document.getElementById("cevaplanan-cagri").value = toplam_cevaplanan.join(",");
       }
 
-      fileNameDisplay.textContent = `Yüklenen Dosya: ${file.name}`;
       alert("Excel dosyasındaki veriler başarıyla yüklendi!");
     })
     .catch((error) => {
       console.error("Dosya yüklenirken bir hata oluştu:", error);
-      fileNameDisplay.textContent = "Yükleme Başarısız!";
       alert("Dosya yüklenirken bir hata oluştu. Lütfen tekrar deneyin.");
     });
 }
 
-// Seçilen dosyanın adını göster
-function showFileName() {
-  const fileInput = document.getElementById("excelFile");
-  const fileNameDisplay = document.getElementById("fileNameDisplay");
-
-  if (fileInput.files && fileInput.files[0]) {
-    fileNameDisplay.textContent = `Seçilen Dosya: ${fileInput.files[0].name}`;
-  } else {
-    fileNameDisplay.textContent = "Henüz bir dosya seçilmedi.";
-  }
-}
-
-// Makro kodu kopyalama
+// Makro kodunu kopyalama fonksiyonu
 function showMacroCode() {
   const macroCodeElement = document.getElementById("macroCode");
   const macroCode = macroCodeElement.textContent || macroCodeElement.innerText;
 
-  navigator.clipboard
-    .writeText(macroCode)
-    .then(() => {
-      alert("Makro kodu kopyalandı!");
-    })
-    .catch((error) => {
-      console.error("Makro kodu kopyalanırken bir hata oluştu:", error);
-      alert("Makro kodu kopyalanamadı.");
-    });
+  // Makro kodunu kopyala
+  navigator.clipboard.writeText(macroCode).then(() => {
+    alert("Makro kodu kopyalandı!");
+  }).catch((error) => {
+    console.error("Makro kodu kopyalanırken bir hata oluştu:", error);
+    alert("Makro kodu kopyalanamadı.");
+  });
 }
 
-// Pivot grafik rehberi
+// Pivot grafik rehberi fonksiyonu
 function addPivotChart() {
-  alert(
-    "Excelde pivot grafik elde etmek için sırası ile bu adımları takip edicez. \n" +
-      "1- Excel'de Alt tuşuna ve F11 tuşuna aynı anda bas \n" +
-      "2- Açılan ekranda sol üst tarafta 'Insert' başlığı altındaki 'Module' sekmesine gir \n" +
-      "3- Web sayfasında bulunan 'Makro Kodunu Göster' butonuna bas ve gelen kodu kopyala (Excel VBA Makro Kodu: yazan başlık hariç) \n" +
-      "4- 'Module' sayfasına kopyaladığın kodu yapıştır \n" +
-      "5- Tekrardan Alt ve F11 tuşlarına aynı anda basıp Excel arayüzüne geri dön \n" +
-      "6- Alt ve F8 tuşlarına aynı anda basıp karşına gelecek olan 'AddOrUpdatePivotChart' seçeneğini seçip 'Çalıştır'a tıkla. Şu anda pivot tablon oluşturulmuş olmalı. \n" +
-      "7- Eğer güncelleme yapmak istersen 'Veriler' sayfasından değiştirmek istediğin verileri değiştir. Daha sonradan Alt ve F8'e basıp bu sefer 'RefreshPivotTable' seçeneğini seçip 'Çalıştır'a bas. Bu, pivot tablonu değiştirmeye yarayacak. \n" +
-      "Afiyet olsun! 😊"
-  );
+  alert("Excelde pivot grafik elde etmek için sırası ile bu adımları takip edicez. \n 1-Excelde Alt tuşuna ve F11 tuşuna aynı anda bas \n 2-Açılan ekranda sol üst tarafta Insert başlığı altındaki modul sekmesine gir \n 3-Web sayfasında bulunan makro kodunu göster butonuna basınca gelen kodu kopyala (Excel VBA Makro Kodu: yazan başlık hariç) \n 4-Module sayfasına kopyaladığın kodu yapıştır \n 5-Tekrardan Alt ve F11 tuşlarına aynı anda basıp excel arayüzüne geri dön \n 6-Alt ve F8 tuşlarına aynı anda basıp karşına gelecek olan AddOrUpdatePivotChart seçeneğini seçip çalıştıra tıkla. Şuanda pivot tablon oluşturulmuş olmalı \n 7- Eğer güncelleme yapmak istersen veriler sayfasından değiştirmek istediğin verileri değiştir, daha sonradan Alt ve F8'e basıp bu seferde RefreshPivotTable seçeneğini seçip çalıştıra bas, bu senin pivot tablonu değiştirmeye yarayacak \n Afiyet olsun! :+D");
 }

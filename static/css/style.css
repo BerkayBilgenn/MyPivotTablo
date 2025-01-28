@@ -13,7 +13,6 @@ body {
   animation: fadeIn 1.5s ease-in;
 }
 
-
 /* Konteyner Genel Ayarı */
 #container {
   background: white;
@@ -43,7 +42,7 @@ label {
 input[type="text"] {
   width: 100%;
   padding: 10px;
-  margin-bottom: 15px;
+  margin-bottom: 15px; /* Margin'i biraz arttırabiliriz */
   border: 1px solid #ccc;
   border-radius: 8px;
   box-sizing: border-box;
@@ -53,6 +52,11 @@ input[type="text"] {
 input[type="text"]:focus {
   border-color: #3498db;
   box-shadow: 0 0 8px rgba(52, 152, 219, 0.3);
+}
+
+/* Toplam Gelen Çağrı ve Cevaplanan Çağrı Düzenlemesi */
+#input-section .space-y-4 {
+  margin-bottom: 30px; /* Aradaki boşluğu arttırarak daha düzgün hizalanmasını sağlarız */
 }
 
 /* Modern Dosya Yükleme */

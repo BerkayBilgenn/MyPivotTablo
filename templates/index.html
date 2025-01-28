@@ -39,36 +39,38 @@
             />
           </div>
 
-          <div>
-            <label
-              for="gelen-cagri"
-              class="block text-sm font-medium text-gray-700"
-            >
-              Toplam Gelen Çağrı:
-            </label>
-            <input
-              type="text"
-              id="gelen-cagri"
-              class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Örnek: 30,45,60,80"
-              required
-            />
-          </div>
+          <div class="space-y-4">
+            <div>
+              <label
+                for="gelen-cagri"
+                class="block text-sm font-medium text-gray-700"
+              >
+                Toplam Gelen Çağrı:
+              </label>
+              <input
+                type="text"
+                id="gelen-cagri"
+                class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="Örnek: 30,45,60,80"
+                required
+              />
+            </div>
 
-          <div>
-            <label
-              for="cevalpanan-cagri"
-              class="block text-sm font-medium text-gray-700"
-            >
-              Toplam Cevaplanan Çağrı:
-            </label>
-            <input
-              type="text"
-              id="cevaplanan-cagri"
-              class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Örnek: 10,15,20,25"
-              required
-            />
+            <div>
+              <label
+                for="cevaplanan-cagri"
+                class="block text-sm font-medium text-gray-700"
+              >
+                Toplam Cevaplanan Çağrı:
+              </label>
+              <input
+                type="text"
+                id="cevaplanan-cagri"
+                class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="Örnek: 10,15,20,25"
+                required
+              />
+            </div>
           </div>
 
           <div class="flex justify-between flex-wrap gap-4">
@@ -106,30 +108,19 @@
 
       <!-- Excel Yükleme Alanı -->
       <div id="upload-section" class="mb-6 p-4 border-2 border-dashed rounded-lg bg-gray-100">
-        
         <form id="uploadForm" enctype="multipart/form-data">
+          <h3>Excel Dosyasından Veri Çek</h3>
+          <label for="excelFile">Excel Dosyanızı Seçin:</label>
           <input
             type="file"
             id="excelFile"
             accept=".xls, .xlsx"
             class="block mb-4 w-full text-sm text-gray-500 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
+            onchange="showFileName(event)" 
           />
-          <div id="upload-section">
-            <h3>Excel Dosyasından Veri Çek</h3>
-            <label for="excelFile">Excel Dosyanızı Seçin</label>
-            <input 
-              type="file" 
-              id="excelFile" 
-              accept=".xls, .xlsx" 
-              onchange="showFileName()" 
-            />
-            <p id="fileNameDisplay">Henüz bir dosya seçilmedi.</p>
-            <button type="button" onclick="uploadExcel()">Verileri Yükle</button>
-          </div>
-          
-          
-          
+          <p id="fileNameDisplay">Henüz bir dosya seçilmedi.</p>
+
+          <button type="button" onclick="uploadExcel(event)">Verileri Yükle</button>
         </form>
       </div>
 
