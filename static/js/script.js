@@ -119,18 +119,19 @@ function generateChart() {
 // Dosya ismini gösterme fonksiyonu
 function showFileName(event) {
   // event.target ile dosya ismini almak
-  if (event && event.target) {
-    const fileInput = event.target;
-    const fileName = fileInput.files[0]?.name;
+  const fileInput = event.target;
+  const fileName = fileInput.files[0]?.name;
 
+  if (fileName) {
     const fileNameElement = document.getElementById("fileNameDisplay");
-    if (fileName && fileNameElement) {
+    if (fileNameElement) {
       fileNameElement.textContent = fileName;
-    } else {
-      fileNameElement.textContent = "Henüz bir dosya seçilmedi.";
     }
   } else {
-    console.error("Event veya event.target tanımlanamıyor.");
+    const fileNameElement = document.getElementById("fileNameDisplay");
+    if (fileNameElement) {
+      fileNameElement.textContent = "Henüz bir dosya seçilmedi.";
+    }
   }
 }
 
