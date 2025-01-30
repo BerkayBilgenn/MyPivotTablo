@@ -8,8 +8,12 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.worksheet.table import Table, TableStyleInfo
 from openpyxl.chart import BarChart, Reference
 import matplotlib.pyplot as plt
+from flask_cors import CORS
 
 app = Flask(__name__)
+
+# CORS desteği ekleyin
+CORS(app, origins=["http://localhost:5000", "http://10.10.137.46:5000", "*"])
 
 # Ana sayfa (HTML yükler)
 @app.route('/')
@@ -105,7 +109,6 @@ def generate_excel():
         plt.xticks(rotation=45, ha='right')  # X eksenindeki verilerin okunabilir olması için
         plt.subplots_adjust(bottom=0.3)  # Alt boşluk ekleyerek kaymayı engelleme
 
-
         # Grafiği belleğe kaydet
         chart_image = io.BytesIO()
         plt.savefig(chart_image, format='png')
@@ -157,8 +160,6 @@ def generate_excel():
     except Exception as e:
         return jsonify({"success": False, "message": f"Hata: {str(e)}"}), 500
 
-
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))  # Render platformunda otomatik port alma
     app.run(debug=True, host='0.0.0.0', port=port)  # Dış dünyaya açmak için '0.0.0.0' kullanıyoruz
-#
