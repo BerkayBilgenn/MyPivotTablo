@@ -102,6 +102,9 @@ def generate_excel():
         plt.title('Çağrı Verileri - Çakışma Önlenmiş')
         plt.legend()
         plt.tight_layout()
+        plt.xticks(rotation=45, ha='right')  # X eksenindeki verilerin okunabilir olması için
+        plt.subplots_adjust(bottom=0.3)  # Alt boşluk ekleyerek kaymayı engelleme
+
 
         # Grafiği belleğe kaydet
         chart_image = io.BytesIO()
@@ -158,3 +161,4 @@ def generate_excel():
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))  # Render platformunda otomatik port alma
     app.run(debug=True, host='0.0.0.0', port=port)  # Dış dünyaya açmak için '0.0.0.0' kullanıyoruz
+#
