@@ -118,16 +118,25 @@ function generateChart() {
 
 // Dosya ismini gösterme fonksiyonu
 function showFileName(event) {
+  // event.target ile dosya ismini almak
   const fileInput = event.target;
   const fileName = fileInput.files[0]?.name;
 
-  const fileNameElement = document.getElementById("fileNameDisplay");
   if (fileName) {
-    fileNameElement.textContent = fileName;
+    const fileNameElement = document.getElementById("fileNameDisplay");
+    if (fileNameElement) {
+      fileNameElement.textContent = fileName;
+    }
   } else {
-    fileNameElement.textContent = "Henüz bir dosya seçilmedi.";
+    const fileNameElement = document.getElementById("fileNameDisplay");
+    if (fileNameElement) {
+      fileNameElement.textContent = "Henüz bir dosya seçilmedi.";
+    }
   }
 }
+
+
+
 
 // Excel'e veri aktarımı fonksiyonu
 function exportToExcel() {
@@ -190,18 +199,38 @@ function uploadExcel() {
   const formData = new FormData();
   formData.append("file", file);
 
-  // Flask API'ye POST isteği gönderiyoruz
-  fetch("http://localhost:5000/upload_excel", {
+  fetch("http://10.10.137.59:5000/upload_excel", {
     method: "POST",
     body: formData,
-  })
+})
     .then((response) => response.json())
     .then((data) => {
-      alert(data.message);  // Dosya yükleme mesajını kullanıcıya gösteriyoruz
+      if (!data.success) {
+        alert(data.message || "Dosya yüklenirken bir hata oluştu.");
+        return;
+      }
+
+      const { x_coords, toplam_gelen, toplam_cevaplanan } = data.data;
+
+      // X Koordinatlarını doldur
+      if (x_coords && x_coords.length > 0) {
+        document.getElementById("x-coordinates").value = x_coords.join(",");
+      }
+
+      // Diğer alanları doldur
+      if (toplam_gelen && toplam_gelen.length > 0) {
+        document.getElementById("gelen-cagri").value = toplam_gelen.join(",");
+      }
+
+      if (toplam_cevaplanan && toplam_cevaplanan.length > 0) {
+        document.getElementById("cevaplanan-cagri").value = toplam_cevaplanan.join(",");
+      }
+
+      alert("Excel dosyasındaki veriler başarıyla yüklendi!");
     })
     .catch((error) => {
       console.error("Dosya yüklenirken bir hata oluştu:", error);
-      alert("Dosya yüklenirken bir hata oluştu.");
+      alert("Dosya yüklenirken bir hata oluştu. Lütfen tekrar deneyin.");
     });
 }
 

@@ -1,6 +1,7 @@
 import os
 import io
 from flask import Flask, render_template, request, jsonify, send_file
+from flask_cors import CORS  # CORS desteği eklendi
 import pandas as pd
 from openpyxl import Workbook
 from openpyxl.drawing.image import Image
@@ -8,12 +9,9 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.worksheet.table import Table, TableStyleInfo
 from openpyxl.chart import BarChart, Reference
 import matplotlib.pyplot as plt
-from flask_cors import CORS
 
 app = Flask(__name__)
-
-# CORS desteği ekleyin
-CORS(app, origins=["http://localhost:5000", "http://10.10.137.46:5000", "*"])
+CORS(app)  # Tüm isteklerde CORS hatasını önler
 
 # Ana sayfa (HTML yükler)
 @app.route('/')
@@ -24,7 +22,7 @@ def index():
 @app.route('/upload_excel', methods=['POST'])
 def upload_excel():
     try:
-        file = request.files['file']
+        file = request.files.get('file')
         if not file:
             return jsonify({"success": False, "message": "Dosya bulunamadı"}), 400
 
@@ -35,24 +33,18 @@ def upload_excel():
         df.columns = df.columns.str.strip().str.lower()
 
         # Hedef sütunları bulmak için anahtar kelimeler
-        x_column = next(
-            (col for col in df.columns if "çağrı" in col or "rapor" in col), None
-        )
-        toplam_gelen_column = next(
-            (col for col in df.columns if "gelen" in col), None
-        )
-        cevaplanan_column = next(
-            (col for col in df.columns if "cevaplanan" in col), None
-        )
+        x_column = next((col for col in df.columns if "çağrı" in col or "rapor" in col), None)
+        toplam_gelen_column = next((col for col in df.columns if "gelen" in col), None)
+        cevaplanan_column = next((col for col in df.columns if "cevaplanan" in col), None)
 
-        # Hedef sütunların bulunup bulunmadığını kontrol et
+        # Gerekli sütunlar yoksa hata döndür
         if not x_column or not toplam_gelen_column or not cevaplanan_column:
             return jsonify({"success": False, "message": "Gerekli sütunlar bulunamadı!"}), 400
 
-        # Sütun verilerini al
-        x_coords = df[x_column].fillna("Bilinmiyor").astype(str).tolist()  # Boş alanları "Bilinmiyor" yap
-        toplam_gelen = df[toplam_gelen_column].fillna(0).astype(int).tolist()  # Boş alanları 0 yap
-        toplam_cevaplanan = df[cevaplanan_column].fillna(0).astype(int).tolist()  # Boş alanları 0 yap
+        # Verileri işle
+        x_coords = df[x_column].fillna("Bilinmiyor").astype(str).tolist()
+        toplam_gelen = df[toplam_gelen_column].fillna(0).astype(int).tolist()
+        toplam_cevaplanan = df[cevaplanan_column].fillna(0).astype(int).tolist()
 
         return jsonify({
             "success": True,
@@ -65,7 +57,7 @@ def upload_excel():
     except Exception as e:
         return jsonify({"success": False, "message": f"Hata: {str(e)}"}), 500
 
-# Grafik ve Excel dosyasını oluşturmak için
+# Excel ve grafik oluşturma
 @app.route('/generate_excel', methods=['POST'])
 def generate_excel():
     try:
@@ -73,7 +65,6 @@ def generate_excel():
         if not data:
             return jsonify({"success": False, "message": "Geçerli veri gönderilmedi"}), 400
 
-        # JSON'dan gelen veriler
         x_coords = data.get('x_coords', [])
         cevaplanan = data.get('cevaplanan', [])
         gelen = data.get('gelen', [])
@@ -81,17 +72,13 @@ def generate_excel():
         if not x_coords or not cevaplanan or not gelen:
             return jsonify({"success": False, "message": "Eksik veri gönderildi"}), 400
 
-        # DataFrame oluştur
         df = pd.DataFrame({
             'X Koordinatları': x_coords,
             'Toplam Cevaplanan Çağrı': cevaplanan,
             'Toplam Gelen Çağrı': gelen
         })
 
-        # Çakışmayı sıfırlamak için Toplam Cevaplanan Çağrı'yı sıfırla
-        df.loc[df['Toplam Cevaplanan Çağrı'] == df['Toplam Gelen Çağrı'], 'Toplam Cevaplanan Çağrı'] = 0
-
-        # Cevaplanan / Gelen Oranı Hesapla (sıfırlanmış değerlerle)
+        # Cevaplanan / Gelen Oranı Hesapla
         df['Cevaplanan / Gelen Çağrı Oranı (%)'] = (
             df['Toplam Cevaplanan Çağrı'] / df['Toplam Gelen Çağrı'].replace(0, 1)
         ) * 100
@@ -103,25 +90,23 @@ def generate_excel():
         plt.plot(df['X Koordinatları'], df['Cevaplanan / Gelen Çağrı Oranı (%)'], label='Cevaplanan / Gelen Oranı (%)', color='orange', marker='o', linewidth=2)
         plt.xlabel('X Koordinatları')
         plt.ylabel('Çağrı Sayısı')
-        plt.title('Çağrı Verileri - Çakışma Önlenmiş')
+        plt.title('Çağrı Verileri')
         plt.legend()
         plt.tight_layout()
-        plt.xticks(rotation=45, ha='right')  # X eksenindeki verilerin okunabilir olması için
-        plt.subplots_adjust(bottom=0.3)  # Alt boşluk ekleyerek kaymayı engelleme
 
-        # Grafiği belleğe kaydet
+        # Grafiği kaydet
         chart_image = io.BytesIO()
         plt.savefig(chart_image, format='png')
         plt.close()
         chart_image.seek(0)
 
-        # Excel Dosyasını Oluştur
+        # Excel Dosyası Oluştur
         output = io.BytesIO()
         wb = Workbook()
         ws = wb.active
         ws.title = "Veriler"
 
-        # DataFrame'den Verileri Excel'e Aktar
+        # Verileri Excel'e Aktar
         for row in dataframe_to_rows(df, index=False, header=True):
             ws.append(row)
 
@@ -131,7 +116,7 @@ def generate_excel():
         tab.tableStyleInfo = style
         ws.add_table(tab)
 
-        # Grafik Ekle
+        # Excel Grafiği Ekle
         chart = BarChart()
         data = Reference(ws, min_col=2, max_col=3, min_row=1, max_row=ws.max_row)
         categories = Reference(ws, min_col=1, min_row=2, max_row=ws.max_row)
@@ -141,13 +126,13 @@ def generate_excel():
         chart.style = 10
         ws.add_chart(chart, "G2")
 
-        # Ayrı Grafik Sayfası
-        chart_ws = wb.create_sheet(title="Grafik Sayfası")
+        # Grafik Sayfası
+        chart_ws = wb.create_sheet(title="Grafik")
         img = Image(chart_image)
         img.anchor = 'A1'
         chart_ws.add_image(img)
 
-        # Excel dosyasını kaydet ve gönder
+        # Dosyayı kaydet ve gönder
         wb.save(output)
         output.seek(0)
 
@@ -160,6 +145,6 @@ def generate_excel():
     except Exception as e:
         return jsonify({"success": False, "message": f"Hata: {str(e)}"}), 500
 
+# Flask Sunucusunu Başlat
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))  # Render platformunda otomatik port alma
-    app.run(debug=True, host='0.0.0.0', port=port)  # Dış dünyaya açmak için '0.0.0.0' kullanıyoruz
+    app.run(debug=True, host='0.0.0.0', port=5000)
